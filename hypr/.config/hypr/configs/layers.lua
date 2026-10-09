@@ -1,0 +1,7 @@
+hl.layer_rule({ name = "qs-noanim-island", match = { namespace = "^quickshell-island$" }, no_anim = true })
+hl.layer_rule({ name = "qs-noanim-island-catcher", match = { namespace = "^quickshell-island-catcher$" }, no_anim = true })
+hl.layer_rule({ name = "qs-noanim-dock", match = { namespace = "^quickshell-dock$" }, no_anim = true })
+hl.layer_rule({ name = "qs-noanim-dock-trigger", match = { namespace = "^quickshell-dock-trigger$" }, no_anim = true })
+hl.layer_rule({ name = "qs-noanim-dock-catcher", match = { namespace = "^quickshell-dock-catcher$" }, no_anim = true })
+hl.layer_rule({ name = "qs-noanim-powermenu", match = { namespace = "^quickshell-powermenu$" }, no_anim = true })
+hl.layer_rule({ name = "qs-noanim-stylemenu", match = { namespace = "^quickshell-stylemenu$" }, no_anim = true })

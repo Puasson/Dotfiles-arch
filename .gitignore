@@ -1,0 +1,18 @@
+# dotfiles .gitignore
+*~
+*.backup
+*.swp
+*.swo
+.DS_Store
+__pycache__/
+*.pyc
+# secretos: nunca commitear claves ni estados locales
+.keys/
+*.key
+# caches de los scripts de tema (runtime, no config)
+# (se generan en $HOME, pero por si alguien los copia al repo)
+current
+family
+mode
+nvim-background
+nvim-flavour

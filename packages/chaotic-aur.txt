@@ -1,0 +1,26 @@
+# Paquetes de chaotic-AUR (binarios precompilados de AUR, sin paru/yay).
+# Uno por linea, SIN prefijo de repo. install.sh prueba primero
+# `pacman -S chaotic-aur/<pkg>` y cae a `pacman -S <pkg>` si no hay override.
+# Si un nombre falla, queda registrado al final (la instalacion continua).
+awww
+brave-bin
+spotify
+zed
+obsidian
+drawio-desktop
+tauon-music-box
+onlyoffice-bin
+qview
+vimix-cursors
+whitesur-icon-theme
+ttf-material-symbols-variable
+prettierd-bin
+nil
+nixfmt
+qmlls
+opencode
+obs-vkcapture
+obs-pipewire-audio-capture
+obs-vaapi
+karere
+img2pdf

@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# theme-set — conmuta familia/modo y sincroniza Quickshell, GTK, Kitty y fondo.
+# Portado desde NixOS (writeShellApplication). Requiere en PATH:
+# quickshell (qs), notify-send, find, shuf, wallpaper-set, theme-apply.
+set -euo pipefail
+
+FAMILIES="abyss-blue forest-green violet-haze holst-red holst-amber mono sakura"
+DEFAULT_FAMILY="abyss-blue"
+CACHE_DIR="$HOME/.cache/quickshell/theme"
+FAMILY_FILE="$CACHE_DIR/family"
+MODE_FILE="$CACHE_DIR/mode"
+WALL_BASE="$HOME/Pictures/Wallpaper"
+
+cur_family() {
+  if [ -f "$FAMILY_FILE" ]; then
+    cat "$FAMILY_FILE"
+  else
+    printf '%s' "$DEFAULT_FAMILY"
+  fi
+}
+
+cur_mode() {
+  if [ -f "$MODE_FILE" ]; then
+    cat "$MODE_FILE"
+  else
+    printf 'dark'
+  fi
+}
+
+valid_family() {
+  case " $FAMILIES " in
+    *" $1 "*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+next_family() {
+  local cur="$1" first="" f found=0
+  for f in $FAMILIES; do
+    [ -z "$first" ] && first="$f"
+    if [ "$found" -eq 1 ]; then
+      printf '%s' "$f"
+      return 0
+    fi
+    [ "$f" = "$cur" ] && found=1
+  done
+  printf '%s' "$first"
+}
+
+set_gtk() {
+  theme-apply "$1" "$2" || true
+}
+
+set_qs() {
+  mkdir -p "$CACHE_DIR" || true
+  printf '%s' "$1" > "$FAMILY_FILE" || true
+  printf '%s' "$2" > "$MODE_FILE" || true
+  qs ipc call Theme setFamily "$1" >/dev/null 2>&1 || true
+  qs ipc call Theme setMode "$2" >/dev/null 2>&1 || true
+}
+
+set_wallpaper() {
+  local dir=""
+  for d in "$WALL_BASE/$1/$2" "$WALL_BASE/$1" "$WALL_BASE"; do
+    if [ -d "$d" ]; then
+      dir="$d"
+      break
+    fi
+  done
+  [ -n "$dir" ] || return 0
+  local img
+  img="$(find "$dir" -maxdepth 1 -type f \
+    \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' \
+       -o -iname '*.webp' -o -iname '*.gif' \) \
+    | shuf -n 1)" || true
+  [ -n "$img" ] && wallpaper-set --persist "$img" >/dev/null 2>&1 || true
+}
+
+apply() {
+  set_gtk "$1" "$2"
+  set_qs "$1" "$2"
+  set_wallpaper "$1" "$2"
+  notify-send -i preferences-desktop-theme "Tema" "$1 · $2" || true
+}
+
+FAMILY="$(cur_family)"
+MODE="$(cur_mode)"
+WANT_FAMILY=""
+WANT_MODE=""
+ACTION=""
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --family)
+      WANT_FAMILY="$2"
+      shift 2
+      ;;
+    --mode)
+      WANT_MODE="$2"
+      shift 2
+      ;;
+    --toggle) ACTION="toggle"; shift ;;
+    --next) ACTION="next"; shift ;;
+    --list) for f in $FAMILIES; do printf '%s\n' "$f"; done; exit 0 ;;
+    --status) printf '%s %s\n' "$FAMILY" "$MODE"; exit 0 ;;
+    *) echo "Uso: theme-set [--family F] [--mode dark|light] | --toggle | --next | --list | --status" >&2; exit 1 ;;
+  esac
+done
+
+if [ "$ACTION" = "toggle" ]; then
+  [ "$MODE" = "dark" ] && MODE="light" || MODE="dark"
+elif [ "$ACTION" = "next" ]; then
+  FAMILY="$(next_family "$FAMILY")"
+fi
+[ -n "$WANT_FAMILY" ] && FAMILY="$WANT_FAMILY"
+[ -n "$WANT_MODE" ] && MODE="$WANT_MODE"
+
+valid_family "$FAMILY" || { echo "Familia desconocida: $FAMILY" >&2; exit 1; }
+[ "$MODE" = "dark" ] || [ "$MODE" = "light" ] || { echo "Modo desconocido: $MODE" >&2; exit 1; }
+
+apply "$FAMILY" "$MODE"
